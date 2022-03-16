@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:cli';
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:minio/minio.dart';
 import 'package:unpub/unpub.dart';
@@ -19,11 +21,11 @@ class S3Store extends PackageStore {
 
   S3Store(this.bucketName,
       {this.region,
-        this.getObjectPath,
-        this.endpoint,
-        this.credentials,
-        this.minio, this.environment}) {
-
+      this.getObjectPath,
+      this.endpoint,
+      this.credentials,
+      this.minio,
+      this.environment}) {
     final env = environment ?? Platform.environment;
 
     // Check for env vars or container credentials if none were provided.
@@ -51,8 +53,8 @@ class S3Store extends PackageStore {
 
   @override
   Future<void> upload(String name, String version, List<int> content) async {
-    await minio!.putObject(
-        bucketName, _getObjectKey(name, version), Stream.value(content));
+    await minio!.putObject(bucketName, _getObjectKey(name, version),
+        Stream.value(content as Uint8List));
   }
 
   @override

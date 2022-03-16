@@ -10,12 +10,14 @@ main(List<String> args) async {
   parser.addOption('port', abbr: 'p', defaultsTo: '4000');
   parser.addOption('database',
       abbr: 'd', defaultsTo: 'mongodb://localhost:27017/dart_pub');
+  parser.addOption('pem_path', abbr: 'c', defaultsTo: '');
 
   var results = parser.parse(args);
 
   var host = results['host'] as String?;
   var port = int.parse(results['port'] as String);
   var dbUri = results['database'] as String;
+  var pemPath = results['pem_path'] as String;
 
   if (results.rest.isNotEmpty) {
     print('Got unexpected arguments: "${results.rest.join(' ')}".\n\nUsage:\n');
@@ -31,6 +33,7 @@ main(List<String> args) async {
   var app = unpub.App(
     metaStore: unpub.MongoStore(db),
     packageStore: unpub.FileStore(baseDir),
+    pemPath: pemPath,
   );
 
   var server = await app.serve(host, port);
