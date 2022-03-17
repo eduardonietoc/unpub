@@ -116,11 +116,10 @@ class App {
       return res;
     });
     print('pemPath: $pemPath');
-    final securityContext = pemPath != null && pemPath!.isNotEmpty
-        ? (SecurityContext()
-          ..useCertificateChain(pemPath!)
-          ..usePrivateKey(pemPath!))
-        : null;
+
+    final SecurityContext securityContext = (SecurityContext()
+      ..useCertificateChain('cert/CA/CA.pem', password: '123qweasd')
+      ..usePrivateKey('cert/CA/CA.key', password: '123qweasd'));
 
     var server = await shelf_io.serve(
       handler,
