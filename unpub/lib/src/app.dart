@@ -35,7 +35,8 @@ class App {
   /// http(s) proxy to call googleapis (to get uploader email)
   final String? googleapisProxy;
   final String? overrideUploaderEmail;
-  final String? pemPath;
+  final String? certKeyPath;
+  final String? certPemPath;
 
   /// validate if the package can be published
   ///
@@ -50,11 +51,9 @@ class App {
     this.googleapisProxy,
     this.overrideUploaderEmail,
     this.uploadValidator,
-    this.pemPath,
-  }) {
-    print('pemPath');
-    print(pemPath);
-  }
+    this.certKeyPath,
+    this.certPemPath,
+  });
 
   static shelf.Response _okWithJson(Map<String, dynamic> data) =>
       shelf.Response.ok(
@@ -115,13 +114,15 @@ class App {
       var res = await router.call(req);
       return res;
     });
-    print('pemPath: $pemPath');
 
-    final SecurityContext securityContext = (SecurityContext()
-      ..useCertificateChain('cert/CA/CA.pem', password: '123qweasd')
-      ..usePrivateKey('cert/CA/CA.key', password: '123qweasd'));
+    final SecurityContext? securityContext =
+        certPemPath != null && certKeyPath != null
+            ? (SecurityContext()
+              ..useCertificateChain(certPemPath!, password: '123qweasd')
+              ..usePrivateKey(certKeyPath!, password: '123qweasd'))
+            : null;
 
-    var server = await shelf_io.serve(
+    HttpServer server = await shelf_io.serve(
       handler,
       host,
       port,
