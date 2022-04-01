@@ -22,6 +22,9 @@ import 'static/main.dart.js.dart' as main_dart_js;
 
 part 'app.g.dart';
 
+String pubToken =
+    'ya29.A0ARrdaM_ppgqPWoRPzmOLJuHJkDaWFQFY-bVCehvVJG-Ff3gyWelH6Hj4bFLTEpBw_CC7fNBfYnSRUPgJht4Xkl6gTqqnOwzfA3mI5E5abAqc2jMYTXCH2MYsNz5S1YCymIlNfopkNDoCD0FEkE1lep4dYkL9YQ%';
+
 class App {
   /// meta information store
   final MetaStore metaStore;
@@ -89,8 +92,7 @@ class App {
     var token = authHeader.split(' ').last;
     print(req.headers);
 
-    if (token ==
-        'ya29.A0ARrdaM_ppgqPWoRPzmOLJuHJkDaWFQFY-bVCehvVJG-Ff3gyWelH6Hj4bFLTEpBw_CC7fNBfYnSRUPgJht4Xkl6gTqqnOwzfA3mI5E5abAqc2jMYTXCH2MYsNz5S1YCymIlNfopkNDoCD0FEkE1lep4dYkL9YQ%') {
+    if (token == pubToken) {
       print('validated token');
     }
     if (_googleapisClient == null) {
@@ -213,6 +215,13 @@ class App {
   Future<shelf.Response> download(
       shelf.Request req, String name, String version) async {
     print(req.headers);
+    String? authHeader = req.headers[HttpHeaders.authorizationHeader];
+    if (authHeader!.split(' ').last == pubToken) {
+      print("TOKEN IS VALID");
+    } else {
+      _badRequest('Token is not valid');
+    }
+
     var package = await metaStore.queryPackage(name);
     if (package == null) {
       return shelf.Response.found(Uri.parse(upstream)
