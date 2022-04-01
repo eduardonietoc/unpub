@@ -164,6 +164,13 @@ class App {
     print('/api/packages/$name');
     print(req.headers);
 
+    String? authHeader = req.headers[HttpHeaders.authorizationHeader];
+    if (authHeader!.split(' ').last == pubToken) {
+      print("TOKEN IS VALID");
+    } else {
+      _badRequest('Token is not valid');
+    }
+
     if (package == null) {
       return shelf.Response.found(
           Uri.parse(upstream).resolve('/api/packages/$name').toString());
