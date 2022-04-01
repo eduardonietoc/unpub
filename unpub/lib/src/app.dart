@@ -169,7 +169,7 @@ class App {
       print("TOKEN IS VALID");
     } else {
       print("TOKEN NOT VALID");
-      _badRequest('Token is not valid');
+      return _badRequest('Token is not valid');
     }
 
     if (package == null) {
@@ -228,7 +228,7 @@ class App {
       print("TOKEN IS VALID");
     } else {
       print("TOKEN NOT VALID");
-      _badRequest('Token is not valid');
+      return _badRequest('Token is not valid');
     }
     var package = await metaStore.queryPackage(name);
     if (package == null) {
