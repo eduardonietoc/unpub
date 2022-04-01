@@ -168,6 +168,7 @@ class App {
     if (authHeader!.split(' ').last == pubToken) {
       print("TOKEN IS VALID");
     } else {
+      print("TOKEN NOT VALID");
       _badRequest('Token is not valid');
     }
 
@@ -226,9 +227,9 @@ class App {
     if (authHeader!.split(' ').last == pubToken) {
       print("TOKEN IS VALID");
     } else {
+      print("TOKEN NOT VALID");
       _badRequest('Token is not valid');
     }
-
     var package = await metaStore.queryPackage(name);
     if (package == null) {
       return shelf.Response.found(Uri.parse(upstream)
