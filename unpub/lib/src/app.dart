@@ -23,7 +23,7 @@ import 'static/main.dart.js.dart' as main_dart_js;
 part 'app.g.dart';
 
 String pubToken =
-    'ya29.A0ARrdaM_9U2MkEYiaHzh-I-ScPjTququAClANFBhQuHvIG380LG5JyIx7q8KbJMXHDo57GkLKJGcZFEmzXzCIZH5FIUHyWbWZ8m-kpRCwBQEUMmkEHiCxC3ob1-8eJPcfakTjL3YvQvZhL81xZP6Pz6ftXPuv%';
+    'ya29.A0ARrdaM9RklEE8ja6jpbtfhdeRCBw6XdPS0mdP4NcrgiDjtz5ppJCVP9yP_uyAovvKEur9BZ8FhYGiWGvofOrlTs8FfK_IasOOeUUqaC1Su7SfWHSHeEvCYOECwkfvrjvJfigfP3FkOGNeGR37MiaC-t5A_NJ';
 
 class App {
   /// meta information store
