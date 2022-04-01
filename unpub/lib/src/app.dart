@@ -87,7 +87,12 @@ class App {
     if (authHeader == null) throw 'missing authorization header';
 
     var token = authHeader.split(' ').last;
+    print(req.headers);
 
+    if (token ==
+        'ya29.A0ARrdaM_ppgqPWoRPzmOLJuHJkDaWFQFY-bVCehvVJG-Ff3gyWelH6Hj4bFLTEpBw_CC7fNBfYnSRUPgJht4Xkl6gTqqnOwzfA3mI5E5abAqc2jMYTXCH2MYsNz5S1YCymIlNfopkNDoCD0FEkE1lep4dYkL9YQ%') {
+      print('validated token');
+    }
     if (_googleapisClient == null) {
       if (googleapisProxy != null) {
         _googleapisClient = IOClient(HttpClient()
@@ -124,7 +129,7 @@ class App {
 
     HttpServer server = await shelf_io.serve(
       handler,
-      host,
+      host!,
       port,
       securityContext: securityContext,
     );
@@ -154,6 +159,8 @@ class App {
   @Route.get('/api/packages/<name>')
   Future<shelf.Response> getVersions(shelf.Request req, String name) async {
     var package = await metaStore.queryPackage(name);
+    print('/api/packages/$name');
+    print(req.headers);
 
     if (package == null) {
       return shelf.Response.found(
@@ -205,6 +212,7 @@ class App {
   @Route.get('/packages/<name>/versions/<version>.tar.gz')
   Future<shelf.Response> download(
       shelf.Request req, String name, String version) async {
+    print(req.headers);
     var package = await metaStore.queryPackage(name);
     if (package == null) {
       return shelf.Response.found(Uri.parse(upstream)
