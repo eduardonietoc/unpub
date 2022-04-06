@@ -247,6 +247,8 @@ class App {
 
   @Route.get('/api/packages/versions/new')
   Future<shelf.Response> getUploadUrl(shelf.Request req) async {
+    print('GET UPLOAD URL');
+
     return _okWithJson({
       'url': req.requestedUri
           .resolve('/api/packages/versions/newUpload')
