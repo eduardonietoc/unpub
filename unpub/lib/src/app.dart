@@ -258,6 +258,7 @@ class App {
   @Route.post('/api/packages/versions/newUpload')
   Future<shelf.Response> upload(shelf.Request req) async {
     try {
+      print('UPLOADING PACKAGE');
       var uploader = await _getUploaderEmail(req);
 
       var contentType = req.headers['content-type'];
