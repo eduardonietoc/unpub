@@ -262,6 +262,7 @@ class App {
     try {
       print('UPLOADING PACKAGE');
       var uploader = await _getUploaderEmail(req);
+      print('GET UPLOADIN EMAIL');
 
       var contentType = req.headers['content-type'];
       if (contentType == null) throw 'invalid content type';
@@ -269,6 +270,7 @@ class App {
       var mediaType = MediaType.parse(contentType);
       var boundary = mediaType.parameters['boundary'];
       if (boundary == null) throw 'invalid boundary';
+      print('INVALID BOUNDARY PASSED');
 
       var transformer = MimeMultipartTransformer(boundary);
       MimeMultipart? fileData;
@@ -281,8 +283,12 @@ class App {
         fileData = part;
       }
 
+      print('INVALID BOUNDARY PASSED');
+
       var bb = await fileData!.fold(
           BytesBuilder(), (BytesBuilder byteBuilder, d) => byteBuilder..add(d));
+      print('Bytes builder');
+
       var tarballBytes = bb.takeBytes();
       var tarBytes = GZipDecoder().decodeBytes(tarballBytes);
       var archive = TarDecoder().decodeBytes(tarBytes);
@@ -321,6 +327,7 @@ class App {
       var version = pubspec['version'] as String;
 
       var package = await metaStore.queryPackage(name);
+      print('queryPackage');
 
       // Package already exists
       if (package != null) {
@@ -343,6 +350,7 @@ class App {
 
       // Upload package tarball to storage
       await packageStore.upload(name, version, tarballBytes);
+      print('upload tarball to storage');
 
       String? readme;
       String? changelog;
@@ -364,6 +372,7 @@ class App {
         DateTime.now(),
       );
       await metaStore.addVersion(name, unpubVersion);
+      print('add version');
 
       // TODO: Upload docs
       return shelf.Response.found(req.requestedUri
