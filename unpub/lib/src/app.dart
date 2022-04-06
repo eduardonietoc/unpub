@@ -22,9 +22,6 @@ import 'static/main.dart.js.dart' as main_dart_js;
 
 part 'app.g.dart';
 
-String pubToken =
-    'ya29.A0ARrdaM9RklEE8ja6jpbtfhdeRCBw6XdPS0mdP4NcrgiDjtz5ppJCVP9yP_uyAovvKEur9BZ8FhYGiWGvofOrlTs8FfK_IasOOeUUqaC1Su7SfWHSHeEvCYOECwkfvrjvJfigfP3FkOGNeGR37MiaC-t5A_NJ';
-
 class App {
   /// meta information store
   final MetaStore metaStore;
@@ -89,12 +86,8 @@ class App {
     var authHeader = req.headers[HttpHeaders.authorizationHeader];
     if (authHeader == null) throw 'missing authorization header';
 
-    var token = authHeader.split(' ').last;
-    print(req.headers);
+    String token = authHeader.split(' ').last;
 
-    if (token == pubToken) {
-      print('validated token');
-    }
     if (_googleapisClient == null) {
       if (googleapisProxy != null) {
         _googleapisClient = IOClient(HttpClient()
@@ -165,10 +158,11 @@ class App {
     print(req.headers);
 
     String? authHeader = req.headers[HttpHeaders.authorizationHeader];
-    if (authHeader!.split(' ').last == pubToken) {
-      print("TOKEN IS VALID");
-    } else {
-      print("TOKEN NOT VALID");
+    String requestToken = authHeader!.split(' ').last;
+
+    bool isTokenValid = await metaStore.isTokenValid(requestToken);
+
+    if (!isTokenValid) {
       return _badRequest('Token is not valid');
     }
 
@@ -224,10 +218,10 @@ class App {
       shelf.Request req, String name, String version) async {
     print(req.headers);
     String? authHeader = req.headers[HttpHeaders.authorizationHeader];
-    if (authHeader!.split(' ').last == pubToken) {
-      print("TOKEN IS VALID");
-    } else {
-      print("TOKEN NOT VALID");
+    String requestToken = authHeader!.split(' ').last;
+
+    bool isTokenValid = await metaStore.isTokenValid(requestToken);
+    if (!isTokenValid) {
       return _badRequest('Token is not valid');
     }
     var package = await metaStore.queryPackage(name);
@@ -585,5 +579,101 @@ class App {
       default:
         return shelf.Response.notFound('Not found');
     }
+  }
+
+  @Route.post('/auth/set-token')
+  Future<shelf.Response> setToken(shelf.Request request) async {
+    print('Staring request to auth/set-token');
+    String body = await request.readAsString();
+
+    Map<String, dynamic> decodedJson = json.decode(body);
+
+    String email = decodedJson['email'];
+    String password = decodedJson['password'];
+    String token = decodedJson['token'];
+    bool isValidUser = await metaStore.checkValidUser(email, password);
+    if (isValidUser) {
+      metaStore.addUserToken(email, token);
+      return shelf.Response.ok(json.encode({
+        'response': 'token saved',
+      }));
+    }
+    return shelf.Response.forbidden(json.encode({
+      'response': 'email or password not valid',
+    }));
+  }
+
+  @Route.post('/auth/check-token')
+  Future<shelf.Response> checkToken(shelf.Request request) async {
+    String body = await request.readAsString();
+
+    Map<String, dynamic> decodedJson = json.decode(body);
+
+    String token = decodedJson['token'];
+
+    bool isTokenValid = await metaStore.isTokenValid(token);
+
+    if (isTokenValid) {
+      return shelf.Response.ok(json.encode({
+        'response': 'token is valid',
+      }));
+    }
+
+    return shelf.Response.forbidden(json.encode({
+      'response': 'token is not valid',
+    }));
+  }
+
+  @Route.post('/auth/change-password')
+  Future<shelf.Response> changePassword(shelf.Request request) async {
+    String body = await request.readAsString();
+
+    Map<String, dynamic> decodedJson = json.decode(body);
+
+    String email = decodedJson['email'];
+    String password = decodedJson['password'];
+    String newPassword = decodedJson['new_password'];
+
+    bool isValidUser = await metaStore.checkValidUser(email, password);
+
+    if (isValidUser) {
+      metaStore.changePassword(email, newPassword);
+
+      return shelf.Response.ok(json.encode({
+        'response': 'changed password',
+      }));
+    }
+
+    return shelf.Response.forbidden(json.encode({
+      'response': 'email or password may be wrong try again',
+    }));
+  }
+
+  @Route.post('/auth/create-user')
+  Future<shelf.Response> createUser(shelf.Request request) async {
+    String body = await request.readAsString();
+
+    Map<String, dynamic> decodedJson = json.decode(body);
+
+    print(decodedJson);
+
+    String email = decodedJson['email'];
+    String password = decodedJson['password'];
+
+    dynamic newUser = decodedJson['new_user'];
+
+    bool isAdmin = await metaStore.checkAdminUser(email, password);
+
+    if (isAdmin) {
+      await metaStore.createUser(newUser);
+
+      return shelf.Response.ok(json.encode({
+        'response': 'user created',
+      }));
+    }
+
+    return shelf.Response.forbidden(json.encode({
+      'response': 'could not create user, check if admin',
+    }));
   }
 }

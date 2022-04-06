@@ -29,5 +29,9 @@ Router _$AppRouter(App service) {
   router.add('GET', r'/packages/<name>/versions/<version>', service.indexHtml);
   router.add('GET', r'/main.dart.js', service.mainDartJs);
   router.add('GET', r'/badge/<type>/<name>', service.badge);
+  router.add('POST', r'/auth/set-token', service.setToken);
+  router.add('POST', r'/auth/check-token', service.checkToken);
+  router.add('POST', r'/auth/create-user', service.createUser);
+  router.add('POST', r'/auth/change-password', service.changePassword);
   return router;
 }

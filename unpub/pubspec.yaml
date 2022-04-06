@@ -7,6 +7,7 @@ environment:
 executables:
   unpub: unpub
 dependencies:
+  crypt: ^4.2.1
   args: ^2.2.0
   shelf: ^1.2.0
   shelf_router: ^1.1.1

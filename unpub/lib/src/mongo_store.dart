@@ -2,9 +2,12 @@ import 'package:mongo_dart/mongo_dart.dart';
 import 'package:intl/intl.dart';
 import 'package:unpub/src/models.dart';
 import 'meta_store.dart';
+import 'package:crypt/crypt.dart';
 
-final packageCollection = 'packages';
-final statsCollection = 'stats';
+final String packageCollection = 'packages';
+final String statsCollection = 'stats';
+final String userCollection = 'users';
+final String tokenCollection = 'tokens';
 
 class MongoStore extends MetaStore {
   Db db;
@@ -100,5 +103,80 @@ class MongoStore extends MetaStore {
     }
 
     return _queryPackagesBySelector(selector);
+  }
+
+  @override
+  Future<void> addUserToken(String email, String token) async {
+    WriteResult result = await db
+        .collection(userCollection)
+        .updateOne(where.eq('email', email), modify.set('token', token));
+
+    print('added token to document: ${result.document}');
+  }
+
+  bool passwordIsValid(String cryptFormatHash, String enteredPassword) =>
+      Crypt(cryptFormatHash).match(enteredPassword);
+
+  @override
+  Future<bool> checkValidUser(String email, String password) async {
+    print('looking for $email');
+
+    Map<String, dynamic>? result =
+        await db.collection(userCollection).findOne(where.eq('email', email));
+
+    if (result == null) {
+      return false;
+    }
+
+    print('check valid user');
+    print('user object $result');
+
+    String? userPass = result!['password'];
+
+    if (password != userPass) {
+      print('hash: $userPass');
+      print('password: $password');
+
+      return passwordIsValid(userPass!, password);
+    }
+
+    return password == userPass;
+  }
+
+  @override
+  Future<bool> isTokenValid(String token) async {
+    Map<String, dynamic>? result =
+        await db.collection(userCollection).findOne(where.eq('token', token));
+
+    return result != null;
+  }
+
+  @override
+  Future<void> createUser(Map<String, dynamic> newUser) async {
+    await db.collection(userCollection).insert(newUser);
+  }
+
+  @override
+  Future<void> changePassword(String email, String newPassword) async {
+    Crypt newPass = Crypt.sha512(newPassword);
+
+    await db.collection(userCollection).update(
+        where.eq('email', email), modify.set('password', newPass.toString()));
+  }
+
+  @override
+  Future<bool> checkAdminUser(String email, String password) async {
+    bool isValidUser = await checkValidUser(email, password);
+
+    print('user is valid $isValidUser');
+
+    if (isValidUser) {
+      Map<String, dynamic>? result =
+          await db.collection(userCollection).findOne(
+                where.eq('email', email).and(where.eq('admin', true)),
+              );
+      return result != null;
+    }
+    return false;
   }
 }

@@ -19,4 +19,16 @@ abstract class MetaStore {
     String? uploader,
     String? dependency,
   });
+
+  Future<void> addUserToken(String email, String token);
+
+  Future<bool> checkValidUser(String email, String password);
+
+  Future<bool> checkAdminUser(String email, String password);
+
+  Future<bool> isTokenValid(String token);
+
+  Future<void> createUser(Map<String, dynamic> user);
+
+  Future<void> changePassword(String email, String newPassword);
 }
