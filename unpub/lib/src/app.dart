@@ -88,6 +88,8 @@ class App {
 
     String token = authHeader.split(' ').last;
 
+    print('uploader token: $token');
+
     if (_googleapisClient == null) {
       if (googleapisProxy != null) {
         _googleapisClient = IOClient(HttpClient()
