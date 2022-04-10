@@ -342,10 +342,12 @@ class App {
           throw '$name is not a private package. Please upload it to https://pub.dev';
         }
 
+        //No need to check cause email has beeen retrieved from db
+        //TODO: only admins should upload?
         // Check uploaders
-        if (package.uploaders?.contains(uploader) == false) {
+        /* if (package.uploaders?.contains(uploader) == false) {
           throw '$uploader is not an uploader of $name';
-        }
+        } */
 
         // Check duplicated version
         var duplicated = package.versions
