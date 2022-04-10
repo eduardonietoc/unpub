@@ -88,9 +88,14 @@ class App {
 
     String token = authHeader.split(' ').last;
 
-    print('uploader token: $token');
+    String email = await metaStore.getUploaderEmail(token);
 
-    if (_googleapisClient == null) {
+    if (email.isEmpty) {
+      throw 'fail to get email';
+    }
+    return email;
+
+    /*  if (_googleapisClient == null) {
       if (googleapisProxy != null) {
         _googleapisClient = IOClient(HttpClient()
           ..findProxy = (url) => HttpClient.findProxyFromEnvironment(url,
@@ -103,7 +108,7 @@ class App {
     var info =
         await Oauth2Api(_googleapisClient!).tokeninfo(accessToken: token);
     if (info.email == null) throw 'fail to get google account email';
-    return info.email!;
+    return info.email!; */
   }
 
   Future<HttpServer> serve([String? host = '0.0.0.0', int port = 4000]) async {

@@ -31,4 +31,6 @@ abstract class MetaStore {
   Future<void> createUser(Map<String, dynamic> user);
 
   Future<void> changePassword(String email, String newPassword);
+
+  Future<String> getUploaderEmail(String token);
 }

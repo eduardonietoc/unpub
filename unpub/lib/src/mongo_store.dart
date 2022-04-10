@@ -179,4 +179,16 @@ class MongoStore extends MetaStore {
     }
     return false;
   }
+
+  @override
+  Future<String> getUploaderEmail(String token) async {
+    Map<String, dynamic>? result = await db.collection(userCollection).findOne(
+          where.eq('token', token),
+        );
+
+    if (result != null) {
+      return result['email'];
+    }
+    return '';
+  }
 }
