@@ -33,4 +33,6 @@ abstract class MetaStore {
   Future<void> changePassword(String email, String newPassword);
 
   Future<String> getUploaderEmail(String token);
+
+  Future<void> checkConnection();
 }

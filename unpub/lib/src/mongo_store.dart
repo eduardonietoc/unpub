@@ -106,21 +106,15 @@ class MongoStore extends MetaStore {
   }
 
   @override
-  Future<void> addUserToken(String email, String token) async {
-    WriteResult result = await db
-        .collection(userCollection)
-        .updateOne(where.eq('email', email), modify.set('token', token));
-
-    print('added token to document: ${result.document}');
-  }
+  Future<void> addUserToken(String email, String token) async => await db
+      .collection(userCollection)
+      .updateOne(where.eq('email', email), modify.set('token', token));
 
   bool passwordIsValid(String cryptFormatHash, String enteredPassword) =>
       Crypt(cryptFormatHash).match(enteredPassword);
 
   @override
   Future<bool> checkValidUser(String email, String password) async {
-    print('looking for $email');
-
     Map<String, dynamic>? result =
         await db.collection(userCollection).findOne(where.eq('email', email));
 
@@ -128,15 +122,9 @@ class MongoStore extends MetaStore {
       return false;
     }
 
-    print('check valid user');
-    print('user object $result');
-
-    String? userPass = result!['password'];
+    String? userPass = result['password'];
 
     if (password != userPass) {
-      print('hash: $userPass');
-      print('password: $password');
-
       return passwordIsValid(userPass!, password);
     }
 
@@ -190,5 +178,14 @@ class MongoStore extends MetaStore {
       return result['email'];
     }
     return '';
+  }
+
+  @override
+  Future<void> checkConnection() async {
+    if (!db.isConnected) {
+      await db
+        ..close()
+        ..open();
+    }
   }
 }

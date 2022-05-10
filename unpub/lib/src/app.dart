@@ -115,11 +115,12 @@ class App {
     var handler = const shelf.Pipeline()
         .addMiddleware(corsHeaders())
         .addMiddleware(shelf.logRequests())
-        .addHandler((req) async {
+        .addHandler((shelf.Request req) async {
       // Return 404 by default
       // https://github.com/google/dart-neats/issues/1
-      var res = await router.call(req);
-      return res;
+      await metaStore.checkConnection();
+      shelf.Response response = await router.call(req);
+      return response;
     });
 
     final SecurityContext? securityContext =
@@ -152,7 +153,6 @@ class App {
 
   bool isPubClient(shelf.Request req) {
     var ua = req.headers[HttpHeaders.userAgentHeader];
-    print(ua);
     return ua != null && ua.toLowerCase().contains('dart pub');
   }
 
@@ -161,8 +161,6 @@ class App {
   @Route.get('/api/packages/<name>')
   Future<shelf.Response> getVersions(shelf.Request req, String name) async {
     var package = await metaStore.queryPackage(name);
-    print('/api/packages/$name');
-    print(req.headers);
 
     String? authHeader = req.headers[HttpHeaders.authorizationHeader];
     String requestToken = authHeader!.split(' ').last;
@@ -223,7 +221,6 @@ class App {
   @Route.get('/packages/<name>/versions/<version>.tar.gz')
   Future<shelf.Response> download(
       shelf.Request req, String name, String version) async {
-    print(req.headers);
     String? authHeader = req.headers[HttpHeaders.authorizationHeader];
     String requestToken = authHeader!.split(' ').last;
 
@@ -254,8 +251,6 @@ class App {
 
   @Route.get('/api/packages/versions/new')
   Future<shelf.Response> getUploadUrl(shelf.Request req) async {
-    print('GET UPLOAD URL');
-
     return _okWithJson({
       'url': req.requestedUri
           .resolve('/api/packages/versions/newUpload')
@@ -267,9 +262,7 @@ class App {
   @Route.post('/api/packages/versions/newUpload')
   Future<shelf.Response> upload(shelf.Request req) async {
     try {
-      print('UPLOADING PACKAGE');
       var uploader = await _getUploaderEmail(req);
-      print('GET UPLOADIN EMAIL');
 
       var contentType = req.headers['content-type'];
       if (contentType == null) throw 'invalid content type';
@@ -277,7 +270,6 @@ class App {
       var mediaType = MediaType.parse(contentType);
       var boundary = mediaType.parameters['boundary'];
       if (boundary == null) throw 'invalid boundary';
-      print('INVALID BOUNDARY PASSED');
 
       var transformer = MimeMultipartTransformer(boundary);
       MimeMultipart? fileData;
@@ -290,11 +282,8 @@ class App {
         fileData = part;
       }
 
-      print('INVALID BOUNDARY PASSED');
-
       var bb = await fileData!.fold(
           BytesBuilder(), (BytesBuilder byteBuilder, d) => byteBuilder..add(d));
-      print('Bytes builder');
 
       var tarballBytes = bb.takeBytes();
       var tarBytes = GZipDecoder().decodeBytes(tarballBytes);
@@ -334,7 +323,6 @@ class App {
       var version = pubspec['version'] as String;
 
       var package = await metaStore.queryPackage(name);
-      print('queryPackage');
 
       // Package already exists
       if (package != null) {
@@ -359,7 +347,6 @@ class App {
 
       // Upload package tarball to storage
       await packageStore.upload(name, version, tarballBytes);
-      print('upload tarball to storage');
 
       String? readme;
       String? changelog;
@@ -381,7 +368,6 @@ class App {
         DateTime.now(),
       );
       await metaStore.addVersion(name, unpubVersion);
-      print('add version');
 
       // TODO: Upload docs
       return shelf.Response.found(req.requestedUri
@@ -604,7 +590,6 @@ class App {
 
   @Route.post('/auth/set-token')
   Future<shelf.Response> setToken(shelf.Request request) async {
-    print('Staring request to auth/set-token');
     String body = await request.readAsString();
 
     Map<String, dynamic> decodedJson = json.decode(body);
@@ -675,8 +660,6 @@ class App {
     String body = await request.readAsString();
 
     Map<String, dynamic> decodedJson = json.decode(body);
-
-    print(decodedJson);
 
     String email = decodedJson['email'];
     String password = decodedJson['password'];
